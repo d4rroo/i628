@@ -33,12 +33,12 @@
   .dot b{width:100%;height:100%;border-radius:50%;background:#747f8d;display:block}
   .dot.online b{background:#23a559}.dot.idle b{background:radial-gradient(circle at 30% 30%,#0b0d12 36%,#f0b232 38%)}.dot.dnd b{background:#f23f43;position:relative}.dot.dnd b::after{content:'';position:absolute;left:22%;right:22%;top:42%;height:16%;border-radius:2px;background:#0b0d12}
 
-  .status{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);font-size:.62rem;letter-spacing:.18em;font-weight:700;color:var(--muted)}
+  .status{display:flex;width:fit-content;margin:0 auto;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);font-size:.62rem;letter-spacing:.18em;font-weight:700;color:var(--muted)}
   .status em{width:8px;height:8px;border-radius:50%;background:#747f8d;display:block}
   .status.online em{background:#23a559;box-shadow:0 0 8px #23a559}.status.idle em{background:#f0b232}.status.dnd em{background:#f23f43}
   .status s{width:1px;height:10px;background:var(--line);text-decoration:none}
 
-  h2{margin-top:18px;font-size:2rem;font-weight:800;letter-spacing:-.04em;display:inline-flex;align-items:center;gap:8px}
+  h2{margin-top:18px;font-size:2rem;font-weight:800;letter-spacing:-.04em;display:flex;justify-content:center;align-items:center;gap:8px}
   h2 svg{width:20px;height:20px}
   .role{margin-top:8px;font-size:.68rem;letter-spacing:.2em;font-weight:700;color:var(--blue)}
   .bio{margin:16px auto 0;max-width:320px;font-size:.82rem;line-height:1.7;color:#a3a9b8}
@@ -222,7 +222,7 @@ function appImage(a){
 function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 function card(imgUrl, label, title, sub){
   const c = el('div','act');
-  if (imgUrl){ const im = el('img'); im.src = imgUrl; im.alt = ''; im.onerror = () => { const ph = el('div','ph', title ? title[0] : '?'); im.replaceWith(ph); }; c.appendChild(im); }
+  if (imgUrl){ const im = el('img'); im.referrerPolicy = 'no-referrer'; im.src = imgUrl; im.alt = ''; im.onerror = () => { const ph = el('div','ph', title ? title[0] : '?'); im.replaceWith(ph); }; c.appendChild(im); }
   else c.appendChild(el('div','ph', title ? title[0] : '?'));
   const info = el('div','info');
   info.appendChild(el('div','lbl',label));
