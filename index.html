@@ -31,7 +31,7 @@
   .avatar-ring img,.avatar-ring .fallback{width:100%;height:100%;border-radius:50%;border:4px solid #000;object-fit:cover;background:#10141f;display:flex;align-items:center;justify-content:center;font-size:2.6rem;font-weight:800;color:var(--blue)}
   .dot{position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:50%;background:#0b0d12;border:4px solid #0b0d12;display:flex;align-items:center;justify-content:center}
   .dot b{width:100%;height:100%;border-radius:50%;background:#747f8d;display:block}
-  .dot.online b{background:#23a559}.dot.idle b{background:#f0b232}.dot.dnd b{background:#f23f43}
+  .dot.online b{background:#23a559}.dot.idle b{background:radial-gradient(circle at 30% 30%,#0b0d12 36%,#f0b232 38%)}.dot.dnd b{background:#f23f43;position:relative}.dot.dnd b::after{content:'';position:absolute;left:22%;right:22%;top:42%;height:16%;border-radius:2px;background:#0b0d12}
 
   .status{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);font-size:.62rem;letter-spacing:.18em;font-weight:700;color:var(--muted)}
   .status em{width:8px;height:8px;border-radius:50%;background:#747f8d;display:block}
@@ -43,11 +43,18 @@
   .role{margin-top:8px;font-size:.68rem;letter-spacing:.2em;font-weight:700;color:var(--blue)}
   .bio{margin:16px auto 0;max-width:320px;font-size:.82rem;line-height:1.7;color:#a3a9b8}
 
-  .activity{margin:18px auto 0;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);font-size:.75rem;color:#b8bdca;display:none;text-align:left;align-items:center;gap:10px}
-  .activity.show{display:flex}
-  .activity img{width:38px;height:38px;border-radius:8px}
-  .activity small{display:block;color:var(--muted);font-size:.65rem;margin-top:2px}
-  .activity strong{display:block;font-weight:700;color:var(--text)}
+  #activities{margin-top:16px;display:flex;flex-direction:column;gap:10px}
+  .act{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);text-align:left;animation:fadein .5s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .act img,.act .ph{width:46px;height:46px;border-radius:9px;flex:none;object-fit:cover;background:#151a26;display:flex;align-items:center;justify-content:center;color:var(--blue);font-weight:800}
+  .act .info{min-width:0;flex:1}
+  .act .lbl{font-size:.58rem;letter-spacing:.16em;font-weight:700;color:var(--muted);margin-bottom:3px}
+  .act .t{font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .act .s{font-size:.7rem;color:#9aa1b2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+  .act .time{font-size:.68rem;color:#23a559;margin-top:3px;font-variant-numeric:tabular-nums}
+  .bar{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:.62rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .bar div{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:#1db954;border-radius:3px}
 
   hr{border:0;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:22px 0 18px}
   .connect{font-size:.62rem;letter-spacing:.28em;font-weight:700;color:var(--muted)}
@@ -98,7 +105,7 @@
     <div class="role">&lt;/&gt; DEVELOPER • GAMER</div>
     <p class="bio">Hey! I'm DaRoO, a passionate content creator. Welcome to my personal space.</p>
 
-    <div class="activity" id="activity"></div>
+    <div id="activities"></div>
 
     <hr>
     <div class="connect">CONNECT WITH ME</div>
@@ -201,25 +208,72 @@ function setAvatar(u){
   img.onload=()=>{img.style.display='block';fb.style.display='none';};
   img.src=url;
 }
+let lastData = null;
+const fmt = ms => { ms = Math.max(0, Math.floor(ms/1000)); const h = Math.floor(ms/3600), m = Math.floor(ms%3600/60), sec = ms%60;
+  return (h ? h + ':' + String(m).padStart(2,'0') : m) + ':' + String(sec).padStart(2,'0'); };
+function appImage(a){
+  const li = a.assets && a.assets.large_image;
+  if (!li) return null;
+  if (li.startsWith('mp:external/')) return 'https://media.discordapp.net/external/' + li.slice(12);
+  if (li.startsWith('mp:')) return 'https://media.discordapp.net/' + li.slice(3);
+  if (a.application_id) return 'https://cdn.discordapp.com/app-assets/' + a.application_id + '/' + li + '.png';
+  return null;
+}
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function card(imgUrl, label, title, sub){
+  const c = el('div','act');
+  if (imgUrl){ const im = el('img'); im.src = imgUrl; im.alt = ''; im.onerror = () => { const ph = el('div','ph', title ? title[0] : '?'); im.replaceWith(ph); }; c.appendChild(im); }
+  else c.appendChild(el('div','ph', title ? title[0] : '?'));
+  const info = el('div','info');
+  info.appendChild(el('div','lbl',label));
+  info.appendChild(el('div','t',title));
+  if (sub) info.appendChild(el('div','s',sub));
+  c.appendChild(info);
+  return {c, info};
+}
 function render(d){
+  lastData = d;
   setAvatar(d.discord_user);
   const st = d.discord_status || 'offline';
   document.getElementById('status').className = 'status ' + st;
   document.getElementById('dot').className = 'dot ' + st;
   document.getElementById('statusText').textContent = LABEL[st];
 
-  const box = document.getElementById('activity');
+  const box = document.getElementById('activities');
+  box.replaceChildren();
+  // Games / apps (type 0 = Playing)
+  (d.activities || []).filter(a => a.type === 0).forEach(a => {
+    const {c, info} = card(appImage(a), 'PLAYING', a.name, a.details || a.state || '');
+    if (a.timestamps && a.timestamps.start){
+      const t = el('div','time'); t.dataset.start = a.timestamps.start; info.appendChild(t);
+    }
+    box.appendChild(c);
+  });
+  // Spotify
   if (d.listening_to_spotify && d.spotify){
-    box.innerHTML = `<img src="${d.spotify.album_art_url}" alt=""><div><small>LISTENING TO SPOTIFY</small><strong></strong><small></small></div>`;
-    box.querySelector('strong').textContent = d.spotify.song;
-    box.querySelectorAll('small')[1].textContent = d.spotify.artist;
-    box.classList.add('show');
-  } else {
-    const g = (d.activities||[]).find(a => a.type === 0);
-    if (g){ box.innerHTML = `<div><small>PLAYING</small><strong></strong></div>`; box.querySelector('strong').textContent = g.name; box.classList.add('show'); }
-    else box.classList.remove('show');
+    const sp = d.spotify;
+    const {c, info} = card(sp.album_art_url, 'LISTENING TO SPOTIFY', sp.song, sp.artist);
+    const bar = el('div','bar');
+    const cur = el('span','', '0:00'); cur.dataset.sp = 'cur';
+    const track = el('div'); const fill = el('i'); fill.dataset.sp = 'fill'; track.appendChild(fill);
+    const tot = el('span','', fmt(sp.timestamps.end - sp.timestamps.start));
+    bar.append(cur, track, tot);
+    info.appendChild(bar);
+    box.appendChild(c);
+  }
+  tick();
+}
+function tick(){
+  const now = Date.now();
+  document.querySelectorAll('.time[data-start]').forEach(t => t.textContent = '▶ ' + fmt(now - Number(t.dataset.start)));
+  if (lastData && lastData.spotify){
+    const {start, end} = lastData.spotify.timestamps;
+    const cur = document.querySelector('[data-sp="cur"]'), fill = document.querySelector('[data-sp="fill"]');
+    if (cur && fill){ const p = Math.min(1, Math.max(0, (now - start) / (end - start)));
+      cur.textContent = fmt(Math.min(now, end) - start); fill.style.width = (p*100) + '%'; }
   }
 }
+setInterval(tick, 1000);
 function lanyardSocket(){
   const ws = new WebSocket('wss://api.lanyard.rest/socket');
   let hb;
