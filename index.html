@@ -232,10 +232,20 @@ function lanyardSocket(){
 fetch('https://api.lanyard.rest/v1/users/' + DISCORD_ID).then(r=>r.json()).then(j=>{ if(j.success) render(j.data); }).catch(()=>{});
 lanyardSocket();
 
-/* View counter */
-fetch('https://api.counterapi.dev/v1/daroo-profile/views/up').then(r=>r.json())
-  .then(j => document.getElementById('views').textContent = Number(j.count).toLocaleString())
-  .catch(() => document.getElementById('views').textContent = '1');
+/* View counter: counts each device once (abacus), other visits only read the number */
+(function(){
+  const el = document.getElementById('views'), pill = el.closest('.views');
+  const ns = 'd4rroo-i628', key = 'views';
+  let seen = false;
+  try { seen = localStorage.getItem('daroo_counted') === '1'; } catch(e){}
+  const url = 'https://abacus.jasoncameron.dev/' + (seen ? 'get' : 'hit') + '/' + ns + '/' + key;
+  fetch(url).then(r => r.json()).then(j => {
+    const n = Number(j.value);
+    if (!isFinite(n)) throw new Error('bad');
+    el.textContent = n.toLocaleString();
+    try { localStorage.setItem('daroo_counted', '1'); } catch(e){}
+  }).catch(() => { pill.style.display = 'none'; });
+})();
 </script>
 </body>
 </html>
