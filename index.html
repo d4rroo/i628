@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#050505">
+<title>DaRoO — Premium Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#050505;--card:#0b0d12;--blue:#4f7cff;--text:#e8ecf5;--muted:#8a90a0;--line:rgba(255,255,255,.08)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{background:var(--bg);color:var(--text);font-family:Inter,system-ui,sans-serif;overflow:hidden}
+  canvas#stars{position:fixed;inset:0;z-index:0}
+  .glow{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse 45% 55% at 50% 50%,rgba(20,60,160,.35),transparent 70%)}
+
+  /* Splash */
+  #splash{position:fixed;inset:0;z-index:50;background:#030409;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:opacity .8s ease,visibility .8s}
+  #splash.hide{opacity:0;visibility:hidden}
+  #splash h1{font-size:2.2rem;font-weight:900;letter-spacing:.3em;color:#5b86ff;text-shadow:0 0 24px rgba(79,124,255,.7)}
+  #splash i{display:block;width:168px;height:2px;background:var(--blue);margin:18px 0 14px;opacity:.7}
+  #splash span{font-size:.7rem;letter-spacing:.3em;color:#555b6a;animation:pulse 2s infinite}
+  @keyframes pulse{50%{opacity:.35}}
+
+  /* Card */
+  main{position:relative;z-index:2;height:100%;display:flex;align-items:center;justify-content:center;padding:16px}
+  .card{width:min(440px,100%);background:linear-gradient(180deg,#0d1017,#080a0f);border:1px solid rgba(79,124,255,.22);border-radius:26px;padding:30px 28px 22px;text-align:center;box-shadow:0 0 80px rgba(30,70,200,.18);opacity:0;transform:translateY(14px) scale(.98);transition:all .9s cubic-bezier(.2,.8,.2,1) .2s}
+  body.entered .card{opacity:1;transform:none}
+  .avatar-wrap{position:relative;width:128px;height:128px;margin:0 auto 14px}
+  .avatar-ring{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,#2f5dff,#6aa0ff,#1a2f8a,#2f5dff);padding:5px;filter:drop-shadow(0 0 14px rgba(79,124,255,.55))}
+  .avatar-ring img,.avatar-ring .fallback{width:100%;height:100%;border-radius:50%;border:4px solid #000;object-fit:cover;background:#10141f;display:flex;align-items:center;justify-content:center;font-size:2.6rem;font-weight:800;color:var(--blue)}
+  .dot{position:absolute;right:6px;bottom:6px;width:22px;height:22px;border-radius:50%;background:#0b0d12;border:4px solid #0b0d12;display:flex;align-items:center;justify-content:center}
+  .dot b{width:100%;height:100%;border-radius:50%;background:#747f8d;display:block}
+  .dot.online b{background:#23a559}.dot.idle b{background:#f0b232}.dot.dnd b{background:#f23f43}
+
+  .status{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);font-size:.62rem;letter-spacing:.18em;font-weight:700;color:var(--muted)}
+  .status em{width:8px;height:8px;border-radius:50%;background:#747f8d;display:block}
+  .status.online em{background:#23a559;box-shadow:0 0 8px #23a559}.status.idle em{background:#f0b232}.status.dnd em{background:#f23f43}
+  .status s{width:1px;height:10px;background:var(--line);text-decoration:none}
+
+  h2{margin-top:18px;font-size:2rem;font-weight:800;letter-spacing:-.04em;display:inline-flex;align-items:center;gap:8px}
+  h2 svg{width:20px;height:20px}
+  .role{margin-top:8px;font-size:.68rem;letter-spacing:.2em;font-weight:700;color:var(--blue)}
+  .bio{margin:16px auto 0;max-width:320px;font-size:.82rem;line-height:1.7;color:#a3a9b8}
+
+  .activity{margin:18px auto 0;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.03);font-size:.75rem;color:#b8bdca;display:none;text-align:left;align-items:center;gap:10px}
+  .activity.show{display:flex}
+  .activity img{width:38px;height:38px;border-radius:8px}
+  .activity small{display:block;color:var(--muted);font-size:.65rem;margin-top:2px}
+  .activity strong{display:block;font-weight:700;color:var(--text)}
+
+  hr{border:0;height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:22px 0 18px}
+  .connect{font-size:.62rem;letter-spacing:.28em;font-weight:700;color:var(--muted)}
+  .links{display:flex;justify-content:center;gap:12px;margin-top:16px}
+  .links a{width:47px;height:47px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:#fff;transition:.2s}
+  .links a:hover{border-color:var(--blue);background:rgba(79,124,255,.12);transform:translateY(-3px)}
+  .links svg{width:20px;height:20px;fill:currentColor}
+
+  .foot{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--line);font-size:.65rem;letter-spacing:.08em;color:#666c7a}
+  .views{display:flex;align-items:center;gap:7px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04);color:#fff;font-weight:700;font-size:.7rem;letter-spacing:0}
+  .views i{width:6px;height:6px;border-radius:50%;background:#23a559}
+  .views svg{width:13px;height:13px;stroke:var(--blue);fill:none;stroke-width:2}
+
+  /* Music pill */
+  .player{position:fixed;right:20px;bottom:20px;z-index:5;display:flex;align-items:center;gap:12px;padding:8px 16px 8px 8px;border:1px solid var(--line);border-radius:999px;background:rgba(10,12,18,.85);backdrop-filter:blur(10px);opacity:0;transition:opacity .8s 1s}
+  body.entered .player{opacity:1}
+  .player button{width:40px;height:40px;border-radius:50%;border:1px solid rgba(79,124,255,.5);background:rgba(79,124,255,.12);color:var(--blue);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .player button svg{width:14px;height:14px;fill:currentColor}
+  .player b{display:block;font-size:.7rem;font-weight:800}
+  .player small{font-size:.58rem;letter-spacing:.14em;color:var(--muted)}
+  .bars{display:flex;gap:2px;align-items:center;height:18px}
+  .bars span{width:2px;background:var(--blue);border-radius:2px;height:6px}
+  .playing .bars span{animation:eq 1s infinite ease-in-out}
+  .bars span:nth-child(2){animation-delay:.2s!important}.bars span:nth-child(3){animation-delay:.4s!important}.bars span:nth-child(4){animation-delay:.1s!important}
+  @keyframes eq{50%{height:16px}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas><div class="glow"></div>
+
+<div id="splash"><h1>DaRoO</h1><i></i><span>CLICK TO ENTER</span></div>
+
+<main>
+  <section class="card">
+    <div class="avatar-wrap">
+      <div class="avatar-ring">
+        <img id="avatar" alt="DaRoO" style="display:none"><div class="fallback" id="avatarFallback">D</div>
+      </div>
+      <div class="dot" id="dot"><b></b></div>
+    </div>
+
+    <div class="status" id="status"><em></em>DISCORD<s></s><span id="statusText">CONNECTING…</span></div>
+
+    <h2>DaRoO
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#4f7cff"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </h2>
+    <div class="role">&lt;/&gt; DEVELOPER • GAMER</div>
+    <p class="bio">Hey! I'm DaRoO, a passionate content creator. Welcome to my personal space.</p>
+
+    <div class="activity" id="activity"></div>
+
+    <hr>
+    <div class="connect">CONNECT WITH ME</div>
+    <div class="links">
+      <a href="https://open.spotify.com/user/317bygcpu5cfpqpng6wou2g4xq7q" title="Spotify"><svg viewBox="0 0 24 24"><path d="M12 0a12 12 0 100 24 12 12 0 000-24zm5.5 17.3a.75.75 0 01-1 .25c-2.8-1.7-6.3-2.1-10.4-1.1a.75.75 0 11-.33-1.46c4.5-1 8.4-.6 11.5 1.3.36.2.47.7.23 1zm1.5-3.3a.94.94 0 01-1.29.31c-3.2-2-8.1-2.5-11.9-1.4a.94.94 0 11-.54-1.8c4.3-1.3 9.7-.7 13.4 1.6.44.27.58.85.33 1.29zm.13-3.4C15.3 8.3 9 8.1 5.4 9.2a1.12 1.12 0 11-.65-2.15c4.2-1.3 11.1-1 15.4 1.6a1.12 1.12 0 11-1.15 1.93z"/></svg></a>
+      <a href="https://discord.com/users/1269670598968217755" title="Discord"><svg viewBox="0 0 24 24"><path d="M20.3 4.4A19.8 19.8 0 0015.4 3l-.2.5a18.3 18.3 0 00-6.4 0L8.6 3a19.8 19.8 0 00-4.9 1.4C.6 9 0 13.5.3 18a20 20 0 006 3l1.2-2a13 13 0 01-2-1l.5-.4a14.3 14.3 0 0012 0l.5.4c-.6.4-1.3.7-2 1l1.2 2a20 20 0 006-3c.4-5.2-.7-9.7-3.4-13.6zM8 15.3c-1.2 0-2.1-1-2.1-2.3S6.8 10.700 8 10.700s2.200 1 2.100 2.300c0 1.300-.9 2.300-2.100 2.300zm8 0c-1.200 0-2.100-1-2.100-2.300s.9-2.300 2.100-2.300 2.200 1 2.100 2.300c0 1.300-.9 2.300-2.100 2.300z"/></svg></a>
+      <a href="https://www.tiktok.com/@d4rro" title="TikTok"><svg viewBox="0 0 24 24"><path d="M19.6 6.700a5 5 0 01-3.100-1.700 5 5 0 01-1.200-3H11.400v13.300a2.500 2.500 0 11-2.500-2.500c.3 0 .5 0 .8.100V8.900a6.400 6.400 0 105.600 6.300V9.300a8.800 8.800 0 005.100 1.600z"/></svg></a>
+      <a href="https://www.snapchat.com/add/d4rroo" title="Snapchat"><svg viewBox="0 0 24 24"><path d="M12 2c3 0 5.200 2.100 5.200 5.100v2c.3.200.9.300 1.300.3.500 0 .8.300.8.600 0 .5-.7.800-1.400 1 .4 1.500 1.400 2.600 2.600 3.100.3.100.3.500 0 .7-.6.300-1.200.4-1.800.5-.1.200-.2.700-.3.900-.1.200-.3.300-.6.300-.6 0-1.200-.2-1.900-.2-1 0-1.500 1.500-3.900 1.500s-2.900-1.500-3.900-1.500c-.7 0-1.300.2-1.900.2-.3 0-.5-.1-.6-.3-.1-.2-.2-.7-.3-.9-.6-.1-1.200-.2-1.800-.5-.3-.2-.3-.6 0-.7 1.200-.5 2.200-1.600 2.600-3.100-.7-.2-1.400-.5-1.400-1 0-.3.300-.6.800-.6.400 0 1-.1 1.300-.3v-2C6.800 4.100 9 2 12 2z"/></svg></a>
+    </div>
+
+    <div class="foot">
+      <span>DaRoO • i628</span>
+      <span class="views"><i></i><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg><b id="views">—</b></span>
+    </div>
+  </section>
+</main>
+
+<div class="player" id="player">
+  <button id="toggle" aria-label="Play or pause"></button>
+  <div><b>NOW PLAYING</b><small>THANK YOU</small></div>
+  <div class="bars"><span></span><span></span><span></span><span></span></div>
+</div>
+
+<audio id="audio" loop preload="auto">
+  <source src="music.mp4">
+  <source src="music.mp4.mp4">
+  <source src="music.mp3">
+  <source src="music.mp3.mp4">
+</audio>
+
+<script>
+/* ======= SETTINGS — change these ======= */
+const DISCORD_ID = "1269670598968217755";   // your Discord user ID (numbers only)
+const MUSIC_VOLUME = 0.5;
+/* ======================================== */
+
+/* Stars: drift, twinkle, mouse parallax, shooting stars */
+const c = document.getElementById('stars'), x = c.getContext('2d');
+let stars = [], shots = [], mx = 0, my = 0, px = 0, py = 0;
+const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function size(){
+  c.width = innerWidth; c.height = innerHeight;
+  const n = Math.min(140, Math.floor(innerWidth*innerHeight/14000));
+  stars = Array.from({length:n}, () => {
+    const z = Math.random();               // depth: 0 far, 1 near
+    return {x:Math.random()*c.width, y:Math.random()*c.height, z, r:.4+z*1.6, a:Math.random()*6.3, s:.01+Math.random()*.02, v:.05+z*.25};
+  });
+}
+addEventListener('resize', size); size();
+addEventListener('mousemove', e => { mx = e.clientX/innerWidth-.5; my = e.clientY/innerHeight-.5; });
+setInterval(() => { if(!still && shots.length<2) shots.push({x:Math.random()*c.width*.8, y:Math.random()*c.height*.4, vx:6+Math.random()*4, vy:3+Math.random()*2, l:0}); }, 3500);
+(function draw(){
+  x.clearRect(0,0,c.width,c.height);
+  px += (mx-px)*.04; py += (my-py)*.04;
+  for(const s of stars){
+    if(!still){ s.y -= s.v; s.x += Math.sin(s.a)*.12; s.a += s.s; if(s.y < -5){ s.y = c.height+5; s.x = Math.random()*c.width; } }
+    const o = .25 + Math.abs(Math.sin(s.a))*.7;
+    const dx = s.x - px*40*s.z, dy = s.y - py*40*s.z;
+    const g = x.createRadialGradient(dx,dy,0,dx,dy,s.r*4);
+    g.addColorStop(0,`rgba(150,185,255,${o})`); g.addColorStop(1,'rgba(80,120,255,0)');
+    x.fillStyle = g; x.beginPath(); x.arc(dx,dy,s.r*4,0,6.3); x.fill();
+    x.fillStyle = `rgba(210,225,255,${o})`; x.beginPath(); x.arc(dx,dy,s.r*.7,0,6.3); x.fill();
+  }
+  for(let i=shots.length-1;i>=0;i--){
+    const t = shots[i]; t.x += t.vx; t.y += t.vy; t.l++;
+    const al = Math.max(0,1-t.l/60);
+    const gr = x.createLinearGradient(t.x,t.y,t.x-t.vx*9,t.y-t.vy*9);
+    gr.addColorStop(0,`rgba(170,200,255,${al})`); gr.addColorStop(1,'rgba(80,120,255,0)');
+    x.strokeStyle = gr; x.lineWidth = 1.6; x.beginPath(); x.moveTo(t.x,t.y); x.lineTo(t.x-t.vx*9,t.y-t.vy*9); x.stroke();
+    if(al<=0) shots.splice(i,1);
+  }
+  requestAnimationFrame(draw);
+})();
+
+/* Enter + music */
+const audio = document.getElementById('audio'), toggle = document.getElementById('toggle'), player = document.getElementById('player');
+const ICON_PAUSE = '<svg viewBox="0 0 24 24"><rect x="5" y="4" width="5" height="16"/><rect x="14" y="4" width="5" height="16"/></svg>';
+const ICON_PLAY  = '<svg viewBox="0 0 24 24"><path d="M6 3l15 9-15 9z"/></svg>';
+function sync(){ toggle.innerHTML = audio.paused ? ICON_PLAY : ICON_PAUSE; player.classList.toggle('playing', !audio.paused); }
+audio.volume = MUSIC_VOLUME; sync();
+document.getElementById('splash').addEventListener('click', () => {
+  document.getElementById('splash').classList.add('hide');
+  document.body.classList.add('entered');
+  audio.play().catch(()=>{}).finally(sync);
+});
+toggle.addEventListener('click', () => { audio.paused ? audio.play() : audio.pause(); sync(); });
+audio.addEventListener('play', sync); audio.addEventListener('pause', sync);
+
+/* Discord presence via Lanyard (join discord.gg/lanyard first!) */
+const LABEL = {online:'ONLINE', idle:'IDLE', dnd:'DO NOT DISTURB', offline:'OFFLINE'};
+function setAvatar(u){
+  if(!u||!u.avatar) return;
+  const img=document.getElementById('avatar'), fb=document.getElementById('avatarFallback');
+  const ext=u.avatar.startsWith('a_')?'gif':'png';
+  const url=`https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${ext}?size=256`;
+  if(img.dataset.src===url) return;
+  img.dataset.src=url;
+  img.onload=()=>{img.style.display='block';fb.style.display='none';};
+  img.src=url;
+}
+function render(d){
+  setAvatar(d.discord_user);
+  const st = d.discord_status || 'offline';
+  document.getElementById('status').className = 'status ' + st;
+  document.getElementById('dot').className = 'dot ' + st;
+  document.getElementById('statusText').textContent = LABEL[st];
+
+  const box = document.getElementById('activity');
+  if (d.listening_to_spotify && d.spotify){
+    box.innerHTML = `<img src="${d.spotify.album_art_url}" alt=""><div><small>LISTENING TO SPOTIFY</small><strong></strong><small></small></div>`;
+    box.querySelector('strong').textContent = d.spotify.song;
+    box.querySelectorAll('small')[1].textContent = d.spotify.artist;
+    box.classList.add('show');
+  } else {
+    const g = (d.activities||[]).find(a => a.type === 0);
+    if (g){ box.innerHTML = `<div><small>PLAYING</small><strong></strong></div>`; box.querySelector('strong').textContent = g.name; box.classList.add('show'); }
+    else box.classList.remove('show');
+  }
+}
+function lanyardSocket(){
+  const ws = new WebSocket('wss://api.lanyard.rest/socket');
+  let hb;
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.op === 1){ hb = setInterval(()=>ws.send(JSON.stringify({op:3})), m.d.heartbeat_interval);
+      ws.send(JSON.stringify({op:2, d:{subscribe_to_id: DISCORD_ID}})); }
+    if (m.op === 0 && m.d) render(m.d);
+  };
+  ws.onclose = () => { clearInterval(hb); setTimeout(lanyardSocket, 5000); };
+}
+fetch('https://api.lanyard.rest/v1/users/' + DISCORD_ID).then(r=>r.json()).then(j=>{ if(j.success) render(j.data); }).catch(()=>{});
+lanyardSocket();
+
+/* View counter */
+fetch('https://api.counterapi.dev/v1/daroo-profile/views/up').then(r=>r.json())
+  .then(j => document.getElementById('views').textContent = Number(j.count).toLocaleString())
+  .catch(() => document.getElementById('views').textContent = '1');
+</script>
+</body>
+</html>
